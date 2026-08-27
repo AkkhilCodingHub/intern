@@ -86,16 +86,23 @@
                         <span>Share Link</span>
                     </button>
 
-                    <!-- Copy to Clipboard Button -->
-                    <button onclick="copyForGoogleSheets()" class="hidden md:inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
-                        <i class="fa-solid fa-copy text-emerald-600 mr-1.5"></i>
-                        <span>Copy for Sheets</span>
+                    <!-- Export CSV Button -->
+                    <button onclick="exportToCSV()" class="hidden md:inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-xs font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition" title="Export table data to CSV spreadsheet">
+                        <i class="fa-solid fa-file-arrow-down text-emerald-600 mr-1.5"></i>
+                        <span>Export CSV</span>
                     </button>
 
-                    <!-- Export CSV Button -->
-                    <button onclick="exportToCSV()" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
-                        <i class="fa-solid fa-file-csv mr-1.5"></i>
-                        <span>CSV</span>
+                    <!-- Import CSV Button -->
+                    <label class="inline-flex items-center px-3 py-2 border border-emerald-300 shadow-sm text-xs font-semibold rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition" title="Import external CSV data directly into cloud database">
+                        <i class="fa-solid fa-file-arrow-up text-emerald-600 mr-1.5"></i>
+                        <span>Import CSV</span>
+                        <input type="file" accept=".csv,text/csv" class="hidden" onchange="importDataCSV(event)">
+                    </label>
+
+                    <!-- Copy to Clipboard Button -->
+                    <button onclick="copyForGoogleSheets()" class="hidden lg:inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
+                        <i class="fa-solid fa-copy text-emerald-600 mr-1.5"></i>
+                        <span>Copy for Sheets</span>
                     </button>
 
                     <!-- Add New Row Button -->
@@ -110,6 +117,14 @@
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                         <div class="absolute right-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-40 hidden group-hover:block hover:block">
+                            <button onclick="exportToCSV()" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                                <i class="fa-solid fa-file-csv text-emerald-600"></i> Export CSV File
+                            </button>
+                            <label class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-file-import text-indigo-600"></i> Import CSV File
+                                <input type="file" accept=".csv,text/csv" class="hidden" onchange="importDataCSV(event)">
+                            </label>
+                            <hr class="my-1 border-slate-100">
                             <button onclick="exportDataJSON()" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
                                 <i class="fa-solid fa-download text-slate-400"></i> Export Backup (JSON)
                             </button>
@@ -970,6 +985,145 @@
             link.click();
             document.body.removeChild(link);
             showToast('CSV downloaded successfully!');
+        }
+
+        // Robust CSV Parser (handles escaped quotes, commas inside quotes, multiline values)
+        function parseCSV(text) {
+            const lines = [];
+            let row = [];
+            let inQuotes = false;
+            let currentStr = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        currentStr += '"';
+                        i++; // Skip next escaped quote
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    row.push(currentStr.trim());
+                    currentStr = '';
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                    row.push(currentStr.trim());
+                    if (row.some(cell => cell.length > 0)) {
+                        lines.push(row);
+                    }
+                    row = [];
+                    currentStr = '';
+                } else {
+                    currentStr += char;
+                }
+            }
+            if (currentStr.length > 0 || row.length > 0) {
+                row.push(currentStr.trim());
+                if (row.some(cell => cell.length > 0)) {
+                    lines.push(row);
+                }
+            }
+
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].map(h => h.toLowerCase().replace(/[^a-z0-9%]/g, ''));
+            const results = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const rowCells = lines[i];
+                if (!rowCells || rowCells.length === 0) continue;
+
+                const item = {
+                    id: Date.now() + i,
+                    date: getTodayString(),
+                    category: "Work Given Progress",
+                    title: "",
+                    details: "",
+                    priority: "Medium Priority",
+                    status: "In Progress",
+                    progress: 0,
+                    notes: "",
+                    images: []
+                };
+
+                rowCells.forEach((val, colIdx) => {
+                    const header = headers[colIdx] || '';
+                    if (header.includes('date') || header.includes('day')) {
+                        item.date = val || getTodayString();
+                    } else if (header.includes('cat') || header.includes('type') || header.includes('track')) {
+                        item.category = val || "Work Given Progress";
+                    } else if (header.includes('title') || header.includes('task') || header.includes('name') || header.includes('problem')) {
+                        item.title = val;
+                    } else if (header.includes('detail') || header.includes('desc') || header.includes('step')) {
+                        item.details = val;
+                    } else if (header.includes('prio') || header.includes('sever')) {
+                        item.priority = val || "Medium Priority";
+                    } else if (header.includes('stat') || header.includes('state')) {
+                        item.status = val || "In Progress";
+                    } else if (header.includes('prog') || header.includes('comp') || header.includes('%')) {
+                        const num = parseInt(val.replace(/[^0-9]/g, ''), 10);
+                        item.progress = isNaN(num) ? 0 : Math.min(100, Math.max(0, num));
+                    } else if (header.includes('note') || header.includes('obs') || header.includes('comment')) {
+                        item.notes = val;
+                    } else if (header.includes('img') || header.includes('attach') || header.includes('proof') || header.includes('url')) {
+                        if (val && (val.startsWith('http') || val.startsWith('data:image'))) {
+                            item.images.push({ dataUrl: val, name: 'Imported Screenshot' });
+                        }
+                    }
+                });
+
+                if (!item.title && rowCells.length > 0) {
+                    item.title = rowCells[3] || rowCells[2] || rowCells[1] || rowCells[0] || 'Imported Task';
+                }
+
+                if (item.title) {
+                    results.push(item);
+                }
+            }
+
+            return results;
+        }
+
+        // Import CSV Handler
+        function importDataCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = parseCSV(e.target.result);
+                    if (parsed.length === 0) {
+                        alert("No valid rows found in CSV. Please verify that your CSV has headers (e.g., Date, Category, Title, Details, Status, Priority, Completion %, Notes).");
+                        return;
+                    }
+
+                    const shouldReplace = confirm(`Found ${parsed.length} rows in "${file.name}"!\n\nClick [OK] to REPLACE your tracker with these ${parsed.length} rows.\nClick [Cancel] to APPEND them to your existing rows.`);
+
+                    if (shouldReplace) {
+                        trackerData = parsed;
+                    } else {
+                        trackerData = [...trackerData, ...parsed];
+                    }
+
+                    persistData();
+                    renderTable();
+                    updateStats();
+                    updateCharts();
+                    showToast(`Imported ${parsed.length} rows & synced to live cloud!`, 'fa-file-circle-check');
+                } catch (err) {
+                    console.error("CSV Import Error:", err);
+                    alert("Error reading CSV file. Please check file formatting.");
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsText(file);
         }
 
         // View Switcher
