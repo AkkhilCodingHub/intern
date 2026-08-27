@@ -81,9 +81,9 @@
                 <!-- Action Toolbar -->
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <!-- Share View Link Button -->
-                    <button onclick="openShareModal()" class="inline-flex items-center px-3 py-2 border border-emerald-500 shadow-sm text-xs font-bold rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition" title="Generate shareable link for mentors or viewers">
+                    <button onclick="openShareModal()" class="inline-flex items-center px-3.5 py-2 border border-emerald-500 shadow-sm text-xs font-bold rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition" title="Get shareable short link for Teams & WhatsApp">
                         <i class="fa-solid fa-share-nodes mr-1.5 text-emerald-600"></i>
-                        <span>Share</span>
+                        <span>Share Link</span>
                     </button>
 
                     <!-- Copy to Clipboard Button -->
@@ -92,7 +92,7 @@
                         <span>Copy for Sheets</span>
                     </button>
 
-                    <!-- Export CSV / Backup Menu Button -->
+                    <!-- Export CSV Button -->
                     <button onclick="exportToCSV()" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
                         <i class="fa-solid fa-file-csv mr-1.5"></i>
                         <span>CSV</span>
@@ -109,7 +109,7 @@
                         <button class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg border border-slate-200 transition" title="More Options & Backup">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
-                        <div class="absolute right-0 mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-40 hidden group-hover:block hover:block">
+                        <div class="absolute right-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-40 hidden group-hover:block hover:block">
                             <button onclick="exportDataJSON()" class="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2">
                                 <i class="fa-solid fa-download text-slate-400"></i> Export Backup (JSON)
                             </button>
@@ -138,7 +138,7 @@
                 </div>
                 <div>
                     <h4 class="font-bold text-sm leading-tight">Viewing Shared Progress Report</h4>
-                    <p class="text-xs text-indigo-100 mt-0.5">You are viewing a shared live snapshot with all tracked tasks & screenshots.</p>
+                    <p class="text-xs text-indigo-100 mt-0.5">You are viewing a shared live snapshot with all tracked tasks & progress.</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -147,7 +147,7 @@
                     <span>Save to My Browser</span>
                 </button>
                 <a href="index.html" class="bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
-                    View My Tracker
+                    View Default Tracker
                 </a>
             </div>
         </div>
@@ -266,9 +266,9 @@
                         <i class="fa-solid fa-fx text-emerald-600"></i> Auto-Synced
                     </span>
                     <span class="hidden md:inline text-slate-400">|</span>
-                    <span class="hidden md:inline"><i class="fa-regular fa-hard-drive mr-1 text-slate-500"></i> LocalStorage + Shareable Link Support</span>
+                    <span class="hidden md:inline"><i class="fa-regular fa-hard-drive mr-1 text-slate-500"></i> LocalStorage + Compact Share Link</span>
                     <span class="hidden lg:inline text-slate-400">|</span>
-                    <span class="hidden lg:inline text-slate-500"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Tip: Use <b>Share</b> button to send your live report to anyone</span>
+                    <span class="hidden lg:inline text-slate-500"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Click <b>Share Link</b> to send to WhatsApp or Teams</span>
                 </div>
                 <div class="text-slate-500 font-medium">
                     Showing <span id="visible-count" class="font-semibold text-slate-800">0</span> items
@@ -463,32 +463,44 @@
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4">
-                <p class="text-xs text-slate-600 leading-relaxed">
-                    This shareable link contains a complete snapshot of your current tasks, dates, status, and attached screenshots. Anyone with this link can view your full report on any device!
-                </p>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1.5">Your Shareable URL</label>
+            <div class="p-6 space-y-5">
+                
+                <!-- Option 1: Clean Main Link -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-globe text-emerald-600"></i> Main Published Website Link
+                        </span>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">Clean Short Link</span>
+                    </div>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="share-link-input" readonly class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-700 select-all focus:ring-2 focus:ring-emerald-500">
-                        <button onclick="copyShareUrl()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
-                            <i class="fa-solid fa-copy"></i>
-                            <span>Copy Link</span>
+                        <input type="text" id="main-web-link" readonly value="https://akkhilcodinghub.github.io/intern/" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-700 select-all">
+                        <button onclick="copyMainUrl()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition whitespace-nowrap">
+                            Copy
                         </button>
                     </div>
                 </div>
 
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 space-y-1">
-                    <p class="font-semibold flex items-center gap-1.5">
-                        <i class="fa-solid fa-info-circle text-amber-600"></i> How it works
+                <!-- Option 2: Compact Snapshot Link (WhatsApp & Teams safe) -->
+                <div class="bg-indigo-50/60 border border-indigo-200/80 rounded-xl p-3.5 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-indigo-600"></i> Compact Live Snapshot Link
+                        </span>
+                        <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-semibold">Teams & WhatsApp Friendly</span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-tight">
+                        Optimized compressed link containing your current tasks and numbers:
                     </p>
-                    <p class="text-[11px] text-amber-700 leading-relaxed">
-                        The entire dataset is safely compressed into the link URL. No server login or database is required. When the viewer opens the link, your progress tracker will render instantly.
-                    </p>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="share-link-input" readonly class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-700 select-all">
+                        <button onclick="copyShareUrl()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition whitespace-nowrap">
+                            Copy
+                        </button>
+                    </div>
                 </div>
 
-                <div class="pt-2 flex items-center justify-end">
+                <div class="pt-1 flex items-center justify-end">
                     <button type="button" onclick="closeShareModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">Close</button>
                 </div>
             </div>
@@ -545,11 +557,9 @@
                 <circle cx="38" cy="19" r="6" fill="#f59e0b"/>
                 <circle cx="56" cy="19" r="6" fill="#10b981"/>
                 <text x="80" y="24" fill="#94a3b8" font-family="monospace" font-size="12">POST /customer-service/api/Payment/ReservationPayment</text>
-                
                 <rect x="25" y="60" width="550" height="85" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.5" rx="6"/>
                 <text x="45" y="90" fill="#fca5a5" font-family="sans-serif" font-size="15" font-weight="bold">HTTP 400 Bad Request</text>
                 <text x="45" y="115" fill="#e2e8f0" font-family="monospace" font-size="12">{ "error": "RateLimitExceeded", "retryAfterSeconds": 38 }</text>
-                
                 <rect x="25" y="165" width="550" height="145" fill="#1e293b" rx="6"/>
                 <text x="45" y="195" fill="#38bdf8" font-family="monospace" font-size="12">// Steps to reproduce:</text>
                 <text x="45" y="220" fill="#cbd5e1" font-family="monospace" font-size="12">1. Create reservation &gt; Scroll to Payment section</text>
@@ -670,11 +680,13 @@
         }
 
         function initData() {
-            // Check for shared URL hash data first: #share=...
+            // Check for shared URL hash data first: #s=... or #share=...
             const hash = window.location.hash || '';
-            if (hash.includes('#share=')) {
+            const sharePrefix = hash.includes('#s=') ? '#s=' : (hash.includes('#share=') ? '#share=' : null);
+            
+            if (sharePrefix) {
                 try {
-                    const compressed = hash.replace('#share=', '');
+                    const compressed = hash.replace(sharePrefix, '');
                     const jsonStr = (typeof LZString !== 'undefined')
                         ? LZString.decompressFromEncodedURIComponent(compressed)
                         : decodeURIComponent(escape(atob(compressed)));
@@ -682,7 +694,24 @@
                     if (jsonStr) {
                         const parsed = JSON.parse(jsonStr);
                         if (Array.isArray(parsed) && parsed.length > 0) {
-                            trackerData = parsed;
+                            // Expand minified compact keys if needed: [id, date, cat, title, details, priority, status, progress, notes]
+                            trackerData = parsed.map(p => {
+                                if (Array.isArray(p)) {
+                                    return {
+                                        id: p[0],
+                                        date: p[1],
+                                        category: p[2] === 1 ? 'Work Given Progress' : '.NET & ASP Learning',
+                                        title: p[3],
+                                        details: p[4] || '',
+                                        priority: p[5] || 'Standard',
+                                        status: p[6],
+                                        progress: p[7] || 0,
+                                        notes: p[8] || '',
+                                        images: []
+                                    };
+                                }
+                                return p;
+                            });
                             isViewingSharedData = true;
                             document.getElementById('shared-banner').classList.remove('hidden');
                             return;
@@ -965,18 +994,32 @@
             }
         }
 
-        // Sharing System
+        // Sharing System - Super compact array serialization
         function openShareModal() {
             try {
-                const jsonStr = JSON.stringify(trackerData);
+                // Compress into minimal array [id, date, catCode (1: Work, 2: Learn), title, details, priority, status, progress, notes]
+                const compactArray = trackerData.map(i => [
+                    i.id,
+                    i.date || getTodayString(),
+                    i.category === 'Work Given Progress' ? 1 : 2,
+                    i.title || '',
+                    i.details || '',
+                    i.priority || '',
+                    i.status || 'Not Started',
+                    i.progress || 0,
+                    i.notes || ''
+                ]);
+
+                const jsonStr = JSON.stringify(compactArray);
                 const compressed = (typeof LZString !== 'undefined')
                     ? LZString.compressToEncodedURIComponent(jsonStr)
-                    : btoa(unescape(encodeURIComponent(jsonStr)));
+                    : encodeURIComponent(btoa(unescape(encodeURIComponent(jsonStr))));
 
                 const baseUrl = window.location.origin + window.location.pathname;
-                const fullShareUrl = `${baseUrl}#share=${compressed}`;
+                const fullShareUrl = `${baseUrl}#s=${compressed}`;
 
                 document.getElementById('share-link-input').value = fullShareUrl;
+                document.getElementById('main-web-link').value = baseUrl.startsWith('http') ? baseUrl : 'https://akkhilcodinghub.github.io/intern/';
                 document.getElementById('share-modal').classList.remove('hidden');
             } catch (e) {
                 console.error("Could not generate share URL", e);
@@ -992,7 +1035,14 @@
             const input = document.getElementById('share-link-input');
             input.select();
             document.execCommand('copy');
-            showToast('Shareable link copied to clipboard!', 'fa-clipboard-check');
+            showToast('Compact share link copied!', 'fa-clipboard-check');
+        }
+
+        function copyMainUrl() {
+            const input = document.getElementById('main-web-link');
+            input.select();
+            document.execCommand('copy');
+            showToast('Main website link copied!', 'fa-clipboard-check');
         }
 
         // Backup Export / Import JSON

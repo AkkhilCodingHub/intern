@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "date": "2026-08-27",
+    "category": "Work Given Progress",
+    "title": "Getting Error 400 / 404 on Payment Endpoint",
+    "details": "URL: https://stage.api.kodacars.com:32783/customer-service/api/Payment/ReservationPayment\nMethod: POST | Status: 400 Bad Request\nSteps:\n1. Create reservation -> 2. Scroll down\n3. Click collect payment (Cash/Card)\n4. Comment anything -> 5. Click collect money",
+    "priority": "High Priority",
+    "status": "In Progress",
+    "progress": 50,
+    "notes": "Rate limit issue: occurs when system receives multiple requests under 38 seconds.",
+    "images": []
+  },
+  {
+    "id": 2,
+    "date": "2026-08-26",
+    "category": "Work Given Progress",
+    "title": "Visual Glitch: White square around UI icons",
+    "details": "White square borders appearing around system icons on frontend layout.",
+    "priority": "Low Priority",
+    "status": "Completed",
+    "progress": 100,
+    "notes": "Logged as visual defect for CSS background transparency cleanup.",
+    "images": []
+  },
+  {
+    "id": 3,
+    "date": "2026-08-25",
+    "category": "Work Given Progress",
+    "title": "Vehicle Registration: Missing license plate validation",
+    "details": "Under vehicle registration, license plate input field does not verify if the entered plate is real or valid format.",
+    "priority": "Medium Priority",
+    "status": "Completed",
+    "progress": 100,
+    "notes": "Needs frontend regex and backend validation rule added.",
+    "images": []
+  },
+  {
+    "id": 4,
+    "date": "2026-08-20",
+    "category": ".NET & ASP Learning",
+    "title": "C# Language Fundamentals & OOP Concepts",
+    "details": "Mastering classes, interfaces, inheritance, polymorphism, generic collections, LINQ, and delegates.",
+    "priority": "Core Topic",
+    "status": "Completed",
+    "progress": 100,
+    "notes": "Foundational OOP principles completed & practiced.",
+    "images": []
+  },
+  {
+    "id": 5,
+    "date": "2026-08-22",
+    "category": ".NET & ASP Learning",
+    "title": "ASP.NET Core MVC & Routing Architecture",
+    "details": "Controller action methods, custom routing setup, Model binding, and Razor view engines.",
+    "priority": "Core Topic",
+    "status": "In Progress",
+    "progress": 60,
+    "notes": "Currently building sample MVC application with custom routes.",
+    "images": []
+  },
+  {
+    "id": 6,
+    "date": "2026-08-24",
+    "category": ".NET & ASP Learning",
+    "title": "Entity Framework Core & DB Migrations",
+    "details": "Setting up DbContext, code-first migrations, entity relationships, and repository pattern.",
+    "priority": "Upcoming Topic",
+    "status": "Not Started",
+    "progress": 0,
+    "notes": "Scheduled next for database data access integration.",
+    "images": []
+  },
+  {
+    "id": 7,
+    "date": "2026-08-26",
+    "category": ".NET & ASP Learning",
+    "title": "ASP.NET Core Web API & Dependency Injection",
+    "details": "Building RESTful Web APIs, Swagger UI documentation, service lifetimes (Transient/Scoped/Singleton).",
+    "priority": "Upcoming Topic",
+    "status": "Not Started",
+    "progress": 0,
+    "notes": "Planned for API backend development track.",
+    "images": []
+  }
+]
