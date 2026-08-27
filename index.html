@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internship Progress Tracker & Bug Report</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Grid aesthetics matching Google Sheets styling */
+        .sheet-grid th {
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .sheet-grid td {
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .sheet-grid tr:hover td {
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar for sheet view */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dropzone.dragover {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+
+        .thumb-overlay:hover .thumb-actions {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Header Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- App Brand & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-emerald-600 text-white rounded-lg flex items-center justify-center shadow-md shadow-emerald-200">
+                        <i class="fa-solid fa-file-excel text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="font-bold text-slate-900 text-lg leading-tight">Intern Progress Report</h1>
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-200">Live Tracker</span>
+                        </div>
+                        <p class="text-xs text-slate-500">Work Given Progress & .NET / ASP Learning with Image Proofs</p>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- Reset Data Button -->
+                    <button onclick="confirmResetData()" title="Reset to initial sample data" class="hidden sm:inline-flex items-center px-2.5 py-2 border border-slate-200 shadow-sm text-xs font-medium rounded-lg text-slate-600 bg-white hover:bg-slate-50 transition">
+                        <i class="fa-solid fa-rotate-left mr-1.5 text-slate-400"></i>
+                        <span>Reset</span>
+                    </button>
+
+                    <!-- Copy to Clipboard Button -->
+                    <button onclick="copyForGoogleSheets()" class="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-xs font-medium rounded-lg text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
+                        <i class="fa-solid fa-copy text-emerald-600 mr-1.5"></i>
+                        <span class="hidden sm:inline">Copy for Sheets</span>
+                        <span class="sm:hidden">Copy</span>
+                    </button>
+
+                    <!-- Export CSV Button -->
+                    <button onclick="exportToCSV()" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-xs font-medium rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition">
+                        <i class="fa-solid fa-file-csv mr-1.5"></i>
+                        <span>Export CSV</span>
+                    </button>
+
+                    <!-- Add New Row Button -->
+                    <button onclick="openModal('add')" class="inline-flex items-center px-3.5 py-2 border border-transparent shadow-sm text-xs font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-indigo-200 transition">
+                        <i class="fa-solid fa-plus mr-1.5"></i>
+                        <span>Add Entry</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top Overview Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Tasks -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Items</p>
+                    <h3 id="stat-total" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                    <p class="text-xs text-slate-400 mt-1">Tracked activities</p>
+                </div>
+                <div class="w-12 h-12 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+            </div>
+
+            <!-- Work Given Bugs -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-amber-600 uppercase tracking-wider">Work Given / Bugs</p>
+                    <h3 id="stat-bugs" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                    <p class="text-xs text-slate-400 mt-1">QA & Tasks</p>
+                </div>
+                <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-bug"></i>
+                </div>
+            </div>
+
+            <!-- Learning Modules -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-indigo-600 uppercase tracking-wider">.NET & ASP Learning</p>
+                    <h3 id="stat-learning" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                    <p class="text-xs text-slate-400 mt-1">Topics roadmap</p>
+                </div>
+                <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+            </div>
+
+            <!-- Average Progress -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Overall Progress</p>
+                    <h3 id="stat-progress" class="text-2xl font-bold text-slate-800 mt-1">0%</h3>
+                    <div class="w-28 bg-slate-200 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="stat-progress-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters & View Switcher Bar -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- Search & Filters -->
+            <div class="flex flex-wrap items-center gap-3 flex-grow">
+                <!-- Search Box -->
+                <div class="relative min-w-[220px] flex-grow md:flex-grow-0">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Search tasks, errors, steps..." class="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition">
+                </div>
+
+                <!-- Category Filter -->
+                <select id="filter-category" onchange="renderTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="ALL">All Categories</option>
+                    <option value="Work Given Progress">Work Given Progress</option>
+                    <option value=".NET & ASP Learning">.NET & ASP Learning</option>
+                </select>
+
+                <!-- Status Filter -->
+                <select id="filter-status" onchange="renderTable()" class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="ALL">All Statuses</option>
+                    <option value="Completed">Completed</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Not Started">Not Started</option>
+                </select>
+
+                <!-- Image Filter Checkbox -->
+                <label class="flex items-center space-x-2 text-xs font-medium text-slate-600 cursor-pointer select-none bg-slate-50 hover:bg-slate-100 border border-slate-300 px-2.5 py-1.5 rounded-lg transition">
+                    <input type="checkbox" id="filter-has-image" onchange="renderTable()" class="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5">
+                    <span><i class="fa-regular fa-image text-emerald-600 mr-1"></i>Has Attachments</span>
+                </label>
+            </div>
+
+            <!-- View Switcher (Grid vs Analytics) -->
+            <div class="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 self-start md:self-auto">
+                <button id="view-btn-sheet" onclick="switchView('sheet')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-800 bg-white shadow-sm flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-table-cells text-emerald-600"></i>
+                    <span>Sheet Grid</span>
+                </button>
+                <button id="view-btn-chart" onclick="switchView('chart')" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-chart-pie text-indigo-600"></i>
+                    <span>Analytics</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sheet View Container -->
+        <div id="view-sheet-container" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <!-- Formula Bar / Sheet Header Info -->
+            <div class="bg-slate-50 border-b border-slate-200 px-4 py-2.5 flex items-center justify-between text-xs text-slate-600">
+                <div class="flex items-center space-x-3">
+                    <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-fx text-emerald-600"></i> Auto-Synced
+                    </span>
+                    <span class="hidden md:inline text-slate-400">|</span>
+                    <span class="hidden md:inline"><i class="fa-regular fa-hard-drive mr-1 text-slate-500"></i> Saves to LocalStorage automatically</span>
+                </div>
+                <div class="text-slate-500 font-medium">
+                    Showing <span id="visible-count" class="font-semibold text-slate-800">0</span> items
+                </div>
+            </div>
+
+            <!-- Spreadsheet Table Scroll Area -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left sheet-grid border-collapse min-w-[1200px]">
+                    <thead>
+                        <tr class="bg-slate-800 text-slate-100 text-xs font-semibold uppercase tracking-wider">
+                            <th class="py-3 px-3 w-12 text-center">Sr.</th>
+                            <th class="py-3 px-3 w-40">Category</th>
+                            <th class="py-3 px-4 w-56">Task / Problem Name</th>
+                            <th class="py-3 px-4 min-w-[260px]">Technical Details & Steps</th>
+                            <th class="py-3 px-3 w-44 text-center">Screenshots / Proof</th>
+                            <th class="py-3 px-3 w-36 text-center">Priority / Status</th>
+                            <th class="py-3 px-3 w-36 text-center">Completion %</th>
+                            <th class="py-3 px-4 min-w-[180px]">Notes & Key Takeaways</th>
+                            <th class="py-3 px-3 w-24 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sheet-body" class="text-xs divide-y divide-slate-200 text-slate-700 font-normal">
+                        <!-- Table rows populated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chart Analytics View Container -->
+        <div id="view-chart-container" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Chart 1: Category Completion Bar -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-emerald-600"></i> Category Progress Overview
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Status Breakdown Donut -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-indigo-600"></i> Task Status Distribution
+                </h3>
+                <div class="relative h-64">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Add / Edit Entry Modal -->
+    <div id="entry-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden my-8 animate-in fade-in zoom-in duration-150">
+            <div class="bg-slate-800 px-6 py-4 flex items-center justify-between text-white">
+                <h3 id="modal-heading" class="font-bold text-base flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> Add Progress / Bug Entry
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <form id="entry-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                <input type="hidden" id="modal-item-id" value="">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Category</label>
+                    <select id="modal-category" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white">
+                        <option value="Work Given Progress">Work Given Progress (Bug / QA Task)</option>
+                        <option value=".NET & ASP Learning">.NET & ASP Learning Progress</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Task / Problem Title</label>
+                    <input type="text" id="modal-title" required placeholder="e.g. Payment Endpoint 400 Bug or Async/Await C#" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Technical Details & Steps</label>
+                    <textarea id="modal-details" rows="3" placeholder="URL, API method, reproduce steps or key learning concepts..." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white"></textarea>
+                </div>
+
+                <!-- Image Attachment Section -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/70 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-slate-700 uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-paperclip text-emerald-600"></i>
+                            Screenshots / Attachments
+                        </label>
+                        <span class="text-[11px] text-slate-400">File upload, URL or Ctrl+V paste</span>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div id="dropzone" onclick="document.getElementById('file-input').click()" class="dropzone border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 text-center cursor-pointer transition bg-white group">
+                        <input type="file" id="file-input" accept="image/*" multiple class="hidden" onchange="handleFileSelect(event)">
+                        <div class="space-y-1">
+                            <div class="w-10 h-10 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition">
+                                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                            </div>
+                            <p class="text-xs font-medium text-slate-700">Click to upload or drag & drop images</p>
+                            <p class="text-[11px] text-slate-400">PNG, JPG, WebP, GIF or paste with <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-100 border border-slate-300 rounded font-mono">Ctrl+V</kbd></p>
+                        </div>
+                    </div>
+
+                    <!-- External Image URL input -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-grow">
+                            <i class="fa-solid fa-link absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="url" id="image-url-input" placeholder="Or paste external image URL..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <button type="button" onclick="addImageUrl()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition">
+                            Add URL
+                        </button>
+                    </div>
+
+                    <!-- Attached Images Thumbnails Preview Container -->
+                    <div id="attached-previews" class="flex flex-wrap gap-2 pt-1 empty:hidden">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Status</label>
+                        <select id="modal-status" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Completion %</label>
+                        <input type="number" id="modal-progress" min="0" max="100" value="0" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Priority / Severity Label</label>
+                    <input type="text" id="modal-priority" placeholder="High Priority / Medium / Low / Feature" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Notes & Key Observations</label>
+                    <input type="text" id="modal-notes" placeholder="Notes for mentor, rate limit info, etc." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="pt-3 flex items-center justify-end space-x-3 border-t border-slate-100">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-50 font-medium transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold shadow-sm shadow-emerald-200 transition">Save Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Lightbox Modal Viewer -->
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center hidden p-4 animate-in fade-in duration-200">
+        <!-- Top Toolbar -->
+        <div class="w-full max-w-5xl flex items-center justify-between text-white px-4 py-2 mb-2">
+            <div class="flex items-center space-x-2">
+                <span id="lightbox-title" class="font-medium text-sm text-slate-200 truncate max-w-md">Image Preview</span>
+                <span id="lightbox-counter" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400">1/1</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a id="lightbox-download" href="#" download="screenshot.png" target="_blank" class="text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Download</span>
+                </a>
+                <button onclick="closeLightbox()" class="text-slate-300 hover:text-white text-2xl p-1 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Image Content Container -->
+        <div class="relative w-full max-w-5xl max-h-[82vh] flex items-center justify-center overflow-hidden">
+            <!-- Nav buttons -->
+            <button id="lightbox-prev" onclick="navigateLightbox(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full text-lg z-10 transition">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <img id="lightbox-img" src="" alt="Full preview" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl transition duration-200">
+
+            <button id="lightbox-next" onclick="navigateLightbox(1)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full text-lg z-10 transition">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Popup -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center space-x-3">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-msg" class="text-xs font-medium">Notification message</span>
+    </div>
+
+    <script>
+        // Sample visual SVG placeholder for initial bug screenshot demonstration
+        const error400Svg = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
+                <rect width="600" height="340" fill="#0f172a" rx="10"/>
+                <rect x="0" y="0" width="600" height="38" fill="#1e293b" rx="10"/>
+                <circle cx="20" cy="19" r="6" fill="#ef4444"/>
+                <circle cx="38" cy="19" r="6" fill="#f59e0b"/>
+                <circle cx="56" cy="19" r="6" fill="#10b981"/>
+                <text x="80" y="24" fill="#94a3b8" font-family="monospace" font-size="12">POST /customer-service/api/Payment/ReservationPayment</text>
+                
+                <rect x="25" y="60" width="550" height="85" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.5" rx="6"/>
+                <text x="45" y="90" fill="#fca5a5" font-family="sans-serif" font-size="15" font-weight="bold">HTTP 400 Bad Request</text>
+                <text x="45" y="115" fill="#e2e8f0" font-family="monospace" font-size="12">{ "error": "RateLimitExceeded", "retryAfterSeconds": 38 }</text>
+                
+                <rect x="25" y="165" width="550" height="145" fill="#1e293b" rx="6"/>
+                <text x="45" y="195" fill="#38bdf8" font-family="monospace" font-size="12">// Steps to reproduce:</text>
+                <text x="45" y="220" fill="#cbd5e1" font-family="monospace" font-size="12">1. Create reservation &gt; Scroll to Payment section</text>
+                <text x="45" y="245" fill="#cbd5e1" font-family="monospace" font-size="12">2. Click Collect Payment (Cash/Card)</text>
+                <text x="45" y="270" fill="#cbd5e1" font-family="monospace" font-size="12">3. Trigger consecutive requests within &lt; 38s window</text>
+            </svg>
+        `);
+
+        // Default initial data
+        const initialData = [
+            {
+                id: 1,
+                category: "Work Given Progress",
+                title: "Getting Error 400 / 404 on Payment Endpoint",
+                details: "URL: https://stage.api.kodacars.com:32783/customer-service/api/Payment/ReservationPayment\nMethod: POST | Status: 400 Bad Request\nSteps:\n1. Create reservation -> 2. Scroll down\n3. Click collect payment (Cash/Card)\n4. Comment anything -> 5. Click collect money",
+                priority: "High Priority",
+                status: "In Progress",
+                progress: 50,
+                notes: "Rate limit issue: occurs when system receives multiple requests under 38 seconds.",
+                images: [
+                    { name: "Payment_400_Error.png", dataUrl: error400Svg }
+                ]
+            },
+            {
+                id: 2,
+                category: "Work Given Progress",
+                title: "Visual Glitch: White square around UI icons",
+                details: "White square borders appearing around system icons on frontend layout.",
+                priority: "Low Priority",
+                status: "Completed",
+                progress: 100,
+                notes: "Logged as visual defect for CSS background transparency cleanup.",
+                images: []
+            },
+            {
+                id: 3,
+                category: "Work Given Progress",
+                title: "Vehicle Registration: Missing license plate validation",
+                details: "Under vehicle registration, license plate input field does not verify if the entered plate is real or valid format.",
+                priority: "Medium Priority",
+                status: "Completed",
+                progress: 100,
+                notes: "Needs frontend regex and backend validation rule added.",
+                images: []
+            },
+            {
+                id: 4,
+                category: ".NET & ASP Learning",
+                title: "C# Language Fundamentals & OOP Concepts",
+                details: "Mastering classes, interfaces, inheritance, polymorphism, generic collections, LINQ, and delegates.",
+                priority: "Core Topic",
+                status: "Completed",
+                progress: 100,
+                notes: "Foundational OOP principles completed & practiced.",
+                images: []
+            },
+            {
+                id: 5,
+                category: ".NET & ASP Learning",
+                title: "ASP.NET Core MVC & Routing Architecture",
+                details: "Controller action methods, custom routing setup, Model binding, and Razor view engines.",
+                priority: "Core Topic",
+                status: "In Progress",
+                progress: 60,
+                notes: "Currently building sample MVC application with custom routes.",
+                images: []
+            },
+            {
+                id: 6,
+                category: ".NET & ASP Learning",
+                title: "Entity Framework Core & DB Migrations",
+                details: "Setting up DbContext, code-first migrations, entity relationships, and repository pattern.",
+                priority: "Upcoming Topic",
+                status: "Not Started",
+                progress: 0,
+                notes: "Scheduled next for database data access integration.",
+                images: []
+            },
+            {
+                id: 7,
+                category: ".NET & ASP Learning",
+                title: "ASP.NET Core Web API & Dependency Injection",
+                details: "Building RESTful Web APIs, Swagger UI documentation, service lifetimes (Transient/Scoped/Singleton).",
+                priority: "Upcoming Topic",
+                status: "Not Started",
+                progress: 0,
+                notes: "Planned for API backend development track.",
+                images: []
+            }
+        ];
+
+        // Load persisted state or fallback
+        const STORAGE_KEY = 'intern_progress_tracker_data_v2';
+        let trackerData = loadData();
+
+        function loadData() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+            } catch (e) {
+                console.error("Could not load from localStorage", e);
+            }
+            return initialData;
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(trackerData));
+            } catch (e) {
+                console.warn("Storage quota exceeded or error writing localStorage", e);
+            }
+        }
+
+        function confirmResetData() {
+            if (confirm("Reset all entries and images back to default demo state?")) {
+                trackerData = JSON.parse(JSON.stringify(initialData));
+                saveData();
+                renderTable();
+                updateStats();
+                updateCharts();
+                showToast("Reset to default dataset");
+            }
+        }
+
+        // Temporary storage for images being added/edited in the modal
+        let modalAttachedImages = [];
+
+        // Lightbox state
+        let currentLightboxImages = [];
+        let currentLightboxIndex = 0;
+
+        // Chart instances
+        let categoryChartInstance = null;
+        let statusChartInstance = null;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTable();
+            updateStats();
+            initCharts();
+            setupDropzone();
+            setupPasteHandler();
+        });
+
+        function renderTable() {
+            const tbody = document.getElementById('sheet-body');
+            const searchVal = (document.getElementById('search-input').value || '').toLowerCase();
+            const categoryFilter = document.getElementById('filter-category').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const hasImageFilter = document.getElementById('filter-has-image').checked;
+
+            tbody.innerHTML = '';
+
+            const filtered = trackerData.filter(item => {
+                const matchesSearch = (item.title || '').toLowerCase().includes(searchVal) ||
+                                      (item.details || '').toLowerCase().includes(searchVal) ||
+                                      (item.notes || '').toLowerCase().includes(searchVal);
+                const matchesCategory = categoryFilter === 'ALL' || item.category === categoryFilter;
+                const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+                const matchesImage = !hasImageFilter || (item.images && item.images.length > 0);
+                return matchesSearch && matchesCategory && matchesStatus && matchesImage;
+            });
+
+            document.getElementById('visible-count').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                const emptyTr = document.createElement('tr');
+                emptyTr.innerHTML = `
+                    <td colspan="9" class="py-8 text-center text-slate-400 bg-slate-50/50">
+                        <i class="fa-solid fa-inbox text-3xl mb-2 block text-slate-300"></i>
+                        No matching entries found. Try adjusting filters or add a new entry.
+                    </td>
+                `;
+                tbody.appendChild(emptyTr);
+                return;
+            }
+
+            filtered.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
+
+                // Category badge colors
+                const categoryBadge = item.category === 'Work Given Progress'
+                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200"><i class="fa-solid fa-bug mr-1"></i>Work Given</span>'
+                    : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200"><i class="fa-solid fa-graduation-cap mr-1"></i>.NET Learning</span>';
+
+                // Status dropdown options & styling
+                let statusBg = 'bg-slate-100 text-slate-700 border-slate-300';
+                if (item.status === 'Completed') statusBg = 'bg-emerald-50 text-emerald-700 border-emerald-300 font-semibold';
+                else if (item.status === 'In Progress') statusBg = 'bg-amber-50 text-amber-700 border-amber-300 font-semibold';
+
+                // Images preview cell rendering
+                let imagesHtml = '';
+                const images = item.images || [];
+                if (images.length > 0) {
+                    imagesHtml = `
+                        <div class="flex items-center justify-center flex-wrap gap-1.5 py-1">
+                            ${images.map((img, imgIdx) => `
+                                <div class="relative group cursor-pointer" onclick="openLightbox(${item.id}, ${imgIdx})" title="Click to view full screenshot">
+                                    <img src="${escapeHtml(img.dataUrl)}" alt="${escapeHtml(img.name || 'Screenshot')}" class="w-10 h-10 object-cover rounded-lg border border-slate-200 shadow-sm group-hover:scale-105 group-hover:border-emerald-500 transition duration-150">
+                                    <div class="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center text-white text-[10px] transition">
+                                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    imagesHtml = `
+                        <button onclick="openModal('edit', ${item.id})" class="inline-flex items-center text-[11px] text-slate-400 hover:text-emerald-600 transition px-2 py-1 rounded border border-dashed border-slate-200 hover:border-emerald-300">
+                            <i class="fa-solid fa-plus mr-1 text-[9px]"></i> Attach
+                        </button>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="py-3 px-3 text-center font-semibold text-slate-500">${index + 1}</td>
+                    <td class="py-3 px-3">${categoryBadge}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(item.title)}</td>
+                    <td class="py-3 px-4 whitespace-pre-line font-mono text-[11px] text-slate-600 bg-slate-50/60 p-2 rounded border border-slate-200/60">${escapeHtml(item.details)}</td>
+                    <td class="py-3 px-3 text-center">${imagesHtml}</td>
+                    <td class="py-3 px-3 text-center">
+                        <select onchange="updateRowStatus(${item.id}, this.value)" class="text-xs rounded-lg px-2 py-1 border ${statusBg} focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="Not Started" ${item.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                            <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Completed" ${item.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                        <div class="text-[10px] text-slate-400 mt-1">${escapeHtml(item.priority || '')}</div>
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                        <div class="flex items-center space-x-2 justify-center">
+                            <input type="number" min="0" max="100" value="${item.progress}" onchange="updateRowProgress(${item.id}, this.value)" class="w-14 text-center border border-slate-300 rounded px-1 py-0.5 font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                            <span class="font-medium text-slate-500">%</span>
+                        </div>
+                        <div class="w-24 mx-auto bg-slate-200 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${item.progress}%"></div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed">${escapeHtml(item.notes)}</td>
+                    <td class="py-3 px-3 text-center">
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="openModal('edit', ${item.id})" class="text-slate-400 hover:text-indigo-600 p-1.5 rounded hover:bg-slate-100 transition" title="Edit Entry & Images">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteRow(${item.id})" class="text-slate-400 hover:text-red-600 p-1.5 rounded hover:bg-slate-100 transition" title="Delete Row">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateStats() {
+            const total = trackerData.length;
+            const bugsCount = trackerData.filter(i => i.category === 'Work Given Progress').length;
+            const learningCount = trackerData.filter(i => i.category === '.NET & ASP Learning').length;
+
+            const totalProgress = trackerData.reduce((acc, curr) => acc + Number(curr.progress || 0), 0);
+            const avgProgress = total > 0 ? Math.round(totalProgress / total) : 0;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-bugs').innerText = bugsCount;
+            document.getElementById('stat-learning').innerText = learningCount;
+            document.getElementById('stat-progress').innerText = avgProgress + '%';
+            document.getElementById('stat-progress-bar').style.width = avgProgress + '%';
+        }
+
+        function updateRowStatus(id, newStatus) {
+            const item = trackerData.find(i => i.id === id);
+            if (item) {
+                item.status = newStatus;
+                if (newStatus === 'Completed') item.progress = 100;
+                else if (newStatus === 'Not Started') item.progress = 0;
+                else if (newStatus === 'In Progress' && item.progress === 0) item.progress = 50;
+                saveData();
+                renderTable();
+                updateStats();
+                updateCharts();
+                showToast('Status updated to ' + newStatus);
+            }
+        }
+
+        function updateRowProgress(id, newProgress) {
+            const item = trackerData.find(i => i.id === id);
+            if (item) {
+                const val = Math.min(100, Math.max(0, Number(newProgress) || 0));
+                item.progress = val;
+                if (val === 100) item.status = 'Completed';
+                else if (val === 0) item.status = 'Not Started';
+                else if (val > 0 && val < 100) item.status = 'In Progress';
+                saveData();
+                renderTable();
+                updateStats();
+                updateCharts();
+                showToast('Completion set to ' + val + '%');
+            }
+        }
+
+        function deleteRow(id) {
+            if (confirm("Are you sure you want to delete this entry?")) {
+                trackerData = trackerData.filter(i => i.id !== id);
+                saveData();
+                renderTable();
+                updateStats();
+                updateCharts();
+                showToast('Entry removed');
+            }
+        }
+
+        function copyForGoogleSheets() {
+            let tsv = "Sr No.\tCategory\tTask / Problem Title\tTechnical Details & Steps\tAttachments Count\tPriority / Status\tCompletion %\tNotes & Observations\n";
+            
+            trackerData.forEach((item, index) => {
+                const cleanDetails = (item.details || '').replace(/\r?\n/g, ' ');
+                const attachCount = (item.images && item.images.length) ? `${item.images.length} attached` : 'None';
+                tsv += `${index + 1}\t${item.category}\t${item.title}\t${cleanDetails}\t${attachCount}\t${item.status} (${item.priority})\t${item.progress}%\t${item.notes}\n`;
+            });
+
+            const textarea = document.createElement('textarea');
+            textarea.value = tsv;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+
+            showToast('Copied formatted table! Paste (Ctrl+V) directly into Google Sheets.', 'fa-clipboard-check');
+        }
+
+        function exportToCSV() {
+            let csv = "Sr No.,Category,Task Title,Technical Details,Attachments Count,Status,Priority,Completion %,Notes\n";
+            trackerData.forEach((item, index) => {
+                const title = `"${(item.title || '').replace(/"/g, '""')}"`;
+                const details = `"${(item.details || '').replace(/"/g, '""')}"`;
+                const notes = `"${(item.notes || '').replace(/"/g, '""')}"`;
+                const attachCount = item.images ? item.images.length : 0;
+                csv += `${index + 1},"${item.category}",${title},${details},${attachCount},"${item.status}","${item.priority}",${item.progress}%,${notes}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', 'Intern_Progress_Tracker_Report.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('CSV downloaded successfully!');
+        }
+
+        // View Switcher
+        function switchView(view) {
+            const sheetContainer = document.getElementById('view-sheet-container');
+            const chartContainer = document.getElementById('view-chart-container');
+            const btnSheet = document.getElementById('view-btn-sheet');
+            const btnChart = document.getElementById('view-btn-chart');
+
+            if (view === 'sheet') {
+                sheetContainer.classList.remove('hidden');
+                chartContainer.classList.add('hidden');
+                btnSheet.className = "px-3 py-1.5 rounded-md text-xs font-semibold text-slate-800 bg-white shadow-sm flex items-center space-x-1.5 transition";
+                btnChart.className = "px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center space-x-1.5 transition";
+            } else {
+                sheetContainer.classList.add('hidden');
+                chartContainer.classList.remove('hidden');
+                btnChart.className = "px-3 py-1.5 rounded-md text-xs font-semibold text-slate-800 bg-white shadow-sm flex items-center space-x-1.5 transition";
+                btnSheet.className = "px-3 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center space-x-1.5 transition";
+                updateCharts();
+            }
+        }
+
+        // Charts
+        function initCharts() {
+            const ctxCat = document.getElementById('categoryChart').getContext('2d');
+            categoryChartInstance = new Chart(ctxCat, {
+                type: 'bar',
+                data: getCategoryChartData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Avg Completion %' } }
+                    }
+                }
+            });
+
+            const ctxStat = document.getElementById('statusChart').getContext('2d');
+            statusChartInstance = new Chart(ctxStat, {
+                type: 'doughnut',
+                data: getStatusChartData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (!categoryChartInstance || !statusChartInstance) return;
+            categoryChartInstance.data = getCategoryChartData();
+            categoryChartInstance.update();
+            statusChartInstance.data = getStatusChartData();
+            statusChartInstance.update();
+        }
+
+        function getCategoryChartData() {
+            const workItems = trackerData.filter(i => i.category === 'Work Given Progress');
+            const learnItems = trackerData.filter(i => i.category === '.NET & ASP Learning');
+
+            const workAvg = workItems.length ? Math.round(workItems.reduce((a, b) => a + Number(b.progress || 0), 0) / workItems.length) : 0;
+            const learnAvg = learnItems.length ? Math.round(learnItems.reduce((a, b) => a + Number(b.progress || 0), 0) / learnItems.length) : 0;
+
+            return {
+                labels: ['Work Given / QA', '.NET & ASP Learning'],
+                datasets: [{
+                    label: 'Avg Progress %',
+                    data: [workAvg, learnAvg],
+                    backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(147, 51, 234, 0.8)'],
+                    borderRadius: 6
+                }]
+            };
+        }
+
+        function getStatusChartData() {
+            const completed = trackerData.filter(i => i.status === 'Completed').length;
+            const inProgress = trackerData.filter(i => i.status === 'In Progress').length;
+            const notStarted = trackerData.filter(i => i.status === 'Not Started').length;
+
+            return {
+                labels: ['Completed', 'In Progress', 'Not Started'],
+                datasets: [{
+                    data: [completed, inProgress, notStarted],
+                    backgroundColor: ['#10B981', '#F59E0B', '#94A3B8']
+                }]
+            };
+        }
+
+        // Modal Open / Close Logic (Add & Edit)
+        function openModal(mode, itemId = null) {
+            const modal = document.getElementById('entry-modal');
+            const form = document.getElementById('entry-form');
+            const heading = document.getElementById('modal-heading');
+            form.reset();
+            modalAttachedImages = [];
+
+            if (mode === 'edit' && itemId) {
+                const item = trackerData.find(i => i.id === itemId);
+                if (item) {
+                    document.getElementById('modal-item-id').value = item.id;
+                    document.getElementById('modal-category').value = item.category;
+                    document.getElementById('modal-title').value = item.title;
+                    document.getElementById('modal-details').value = item.details || '';
+                    document.getElementById('modal-status').value = item.status;
+                    document.getElementById('modal-progress').value = item.progress;
+                    document.getElementById('modal-priority').value = item.priority || '';
+                    document.getElementById('modal-notes').value = item.notes || '';
+                    modalAttachedImages = item.images ? JSON.parse(JSON.stringify(item.images)) : [];
+                    heading.innerHTML = `<i class="fa-solid fa-pen-to-square text-emerald-400"></i> Edit Entry & Attachments`;
+                }
+            } else {
+                document.getElementById('modal-item-id').value = '';
+                heading.innerHTML = `<i class="fa-solid fa-plus-circle text-emerald-400"></i> Add Progress / Bug Entry`;
+            }
+
+            renderModalImagePreviews();
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('entry-modal').classList.add('hidden');
+            document.getElementById('entry-form').reset();
+            modalAttachedImages = [];
+        }
+
+        // Image Handling (Upload, Drag-and-drop, Paste, URL)
+        function setupDropzone() {
+            const dropzone = document.getElementById('dropzone');
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzone.classList.remove('dragover');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            });
+        }
+
+        function setupPasteHandler() {
+            window.addEventListener('paste', (e) => {
+                const modal = document.getElementById('entry-modal');
+                if (modal.classList.contains('hidden')) return;
+
+                const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                for (let index in items) {
+                    const item = items[index];
+                    if (item.kind === 'file' && item.type.startsWith('image/')) {
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            modalAttachedImages.push({
+                                name: `Pasted_Screenshot_${new Date().toISOString().slice(11, 19).replace(/:/g, '')}.png`,
+                                dataUrl: event.target.result
+                            });
+                            renderModalImagePreviews();
+                            showToast('Screenshot pasted from clipboard!');
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                }
+            });
+        }
+
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+
+        function handleFiles(files) {
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    modalAttachedImages.push({
+                        name: file.name,
+                        dataUrl: e.target.result
+                    });
+                    renderModalImagePreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+            showToast(`${files.length} image(s) processed`);
+        }
+
+        function addImageUrl() {
+            const input = document.getElementById('image-url-input');
+            const url = input.value.trim();
+            if (!url) return;
+
+            modalAttachedImages.push({
+                name: url.split('/').pop() || 'Web Image',
+                dataUrl: url
+            });
+            input.value = '';
+            renderModalImagePreviews();
+            showToast('Image URL added');
+        }
+
+        function removeModalImage(index) {
+            modalAttachedImages.splice(index, 1);
+            renderModalImagePreviews();
+        }
+
+        function renderModalImagePreviews() {
+            const container = document.getElementById('attached-previews');
+            container.innerHTML = '';
+
+            modalAttachedImages.forEach((img, idx) => {
+                const div = document.createElement('div');
+                div.className = "relative group w-16 h-16 rounded-lg border border-slate-300 overflow-hidden bg-slate-100 shadow-sm";
+                div.innerHTML = `
+                    <img src="${escapeHtml(img.dataUrl)}" alt="${escapeHtml(img.name)}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeModalImage(${idx})" class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition shadow" title="Remove">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <span class="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[9px] truncate px-1 py-0.5 text-center">${escapeHtml(img.name || 'image')}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Form Submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('modal-item-id').value;
+
+            const itemData = {
+                category: document.getElementById('modal-category').value,
+                title: document.getElementById('modal-title').value,
+                details: document.getElementById('modal-details').value,
+                priority: document.getElementById('modal-priority').value || 'Standard',
+                status: document.getElementById('modal-status').value,
+                progress: Math.min(100, Math.max(0, Number(document.getElementById('modal-progress').value) || 0)),
+                notes: document.getElementById('modal-notes').value,
+                images: [...modalAttachedImages]
+            };
+
+            if (editId) {
+                const index = trackerData.findIndex(i => i.id == editId);
+                if (index !== -1) {
+                    trackerData[index] = { ...trackerData[index], ...itemData };
+                    showToast('Entry updated successfully!');
+                }
+            } else {
+                const newItem = {
+                    id: Date.now(),
+                    ...itemData
+                };
+                trackerData.push(newItem);
+                showToast('New entry created!');
+            }
+
+            saveData();
+            renderTable();
+            updateStats();
+            updateCharts();
+            closeModal();
+        }
+
+        // Lightbox Fullscreen Viewer Logic
+        function openLightbox(itemId, imageIndex = 0) {
+            const item = trackerData.find(i => i.id === itemId);
+            if (!item || !item.images || item.images.length === 0) return;
+
+            currentLightboxImages = item.images;
+            currentLightboxIndex = imageIndex;
+
+            document.getElementById('lightbox-title').innerText = item.title;
+            updateLightboxDisplay();
+            document.getElementById('lightbox-modal').classList.remove('hidden');
+        }
+
+        function updateLightboxDisplay() {
+            const img = currentLightboxImages[currentLightboxIndex];
+            if (!img) return;
+
+            const lightboxImg = document.getElementById('lightbox-img');
+            const counter = document.getElementById('lightbox-counter');
+            const downloadBtn = document.getElementById('lightbox-download');
+            const prevBtn = document.getElementById('lightbox-prev');
+            const nextBtn = document.getElementById('lightbox-next');
+
+            lightboxImg.src = img.dataUrl;
+            counter.innerText = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
+            downloadBtn.href = img.dataUrl;
+            downloadBtn.download = img.name || `screenshot_${currentLightboxIndex + 1}.png`;
+
+            if (currentLightboxImages.length > 1) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            }
+        }
+
+        function navigateLightbox(dir) {
+            currentLightboxIndex = (currentLightboxIndex + dir + currentLightboxImages.length) % currentLightboxImages.length;
+            updateLightboxDisplay();
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').classList.add('hidden');
+            currentLightboxImages = [];
+        }
+
+        // Close lightbox on Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLightbox();
+                closeModal();
+            } else if (e.key === 'ArrowLeft' && !document.getElementById('lightbox-modal').classList.contains('hidden')) {
+                navigateLightbox(-1);
+            } else if (e.key === 'ArrowRight' && !document.getElementById('lightbox-modal').classList.contains('hidden')) {
+                navigateLightbox(1);
+            }
+        });
+
+        // Toast Helper
+        function showToast(msg, iconClass = 'fa-circle-check') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            toastIcon.className = `fa-solid ${iconClass} text-emerald-400 text-lg`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
