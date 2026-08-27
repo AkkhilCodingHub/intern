@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- LZString CDN for compact URL sharing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
@@ -72,16 +70,18 @@
                     <div>
                         <div class="flex items-center space-x-2">
                             <h1 class="font-bold text-slate-900 text-lg leading-tight">Intern Progress Report</h1>
-                            <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-200">Live Tracker</span>
+                            <span id="sync-status" class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                                <i class="fa-solid fa-cloud text-[10px]"></i> Live Cloud Synced
+                            </span>
                         </div>
-                        <p class="text-xs text-slate-500">Work Given Progress & .NET / ASP Learning with Date, Edit, Delete & Image Proofs</p>
+                        <p class="text-xs text-slate-500">Work Given Progress & .NET / ASP Learning with Date, Edit, Delete & Proofs</p>
                     </div>
                 </div>
 
                 <!-- Action Toolbar -->
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <!-- Share View Link Button -->
-                    <button onclick="openShareModal()" class="inline-flex items-center px-3.5 py-2 border border-emerald-500 shadow-sm text-xs font-bold rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition" title="Get shareable short link for Teams & WhatsApp">
+                    <button onclick="copyShareableLink()" class="inline-flex items-center px-3.5 py-2 border border-emerald-500 shadow-sm text-xs font-bold rounded-lg text-emerald-800 bg-emerald-50 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition" title="Copy clean short share link for Teams & WhatsApp">
                         <i class="fa-solid fa-share-nodes mr-1.5 text-emerald-600"></i>
                         <span>Share Link</span>
                     </button>
@@ -129,28 +129,6 @@
     </header>
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-        <!-- Shared Mode Banner (Shown when visiting via share link) -->
-        <div id="shared-banner" class="hidden bg-gradient-to-r from-indigo-700 via-indigo-600 to-emerald-600 text-white p-4 rounded-2xl shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
-            <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-eye text-emerald-200"></i>
-                </div>
-                <div>
-                    <h4 class="font-bold text-sm leading-tight">Viewing Shared Progress Report</h4>
-                    <p class="text-xs text-indigo-100 mt-0.5">You are viewing a shared live snapshot with all tracked tasks & progress.</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button onclick="saveSharedDataToLocal()" class="bg-white text-indigo-700 hover:bg-indigo-50 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-bookmark text-emerald-600"></i>
-                    <span>Save to My Browser</span>
-                </button>
-                <a href="index.html" class="bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition">
-                    View Default Tracker
-                </a>
-            </div>
-        </div>
 
         <!-- Top Overview Metric Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -263,12 +241,12 @@
             <div class="bg-slate-50 border-b border-slate-200 px-4 py-2.5 flex items-center justify-between text-xs text-slate-600">
                 <div class="flex items-center space-x-3">
                     <span class="font-bold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-fx text-emerald-600"></i> Auto-Synced
+                        <i class="fa-solid fa-cloud text-emerald-600"></i> Cloud Real-Time Sync
                     </span>
                     <span class="hidden md:inline text-slate-400">|</span>
-                    <span class="hidden md:inline"><i class="fa-regular fa-hard-drive mr-1 text-slate-500"></i> LocalStorage + Compact Share Link</span>
+                    <span class="hidden md:inline"><i class="fa-regular fa-globe mr-1 text-slate-500"></i> Changes sync to anyone who opens your link</span>
                     <span class="hidden lg:inline text-slate-400">|</span>
-                    <span class="hidden lg:inline text-slate-500"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Click <b>Share Link</b> to send to WhatsApp or Teams</span>
+                    <span class="hidden lg:inline text-slate-500"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i> Send <b>https://akkhilcodinghub.github.io/intern/</b> on Teams/WhatsApp</span>
                 </div>
                 <div class="text-slate-500 font-medium">
                     Showing <span id="visible-count" class="font-semibold text-slate-800">0</span> items
@@ -452,61 +430,6 @@
         </div>
     </div>
 
-    <!-- Share Link Modal -->
-    <div id="share-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4 animate-in fade-in duration-150">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-600 to-indigo-600 px-6 py-4 flex items-center justify-between text-white">
-                <h3 class="font-bold text-base flex items-center gap-2">
-                    <i class="fa-solid fa-share-nodes"></i> Share Live Progress Report
-                </h3>
-                <button onclick="closeShareModal()" class="text-white/80 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <div class="p-6 space-y-5">
-                
-                <!-- Option 1: Clean Main Link -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-globe text-emerald-600"></i> Main Published Website Link
-                        </span>
-                        <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">Clean Short Link</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <input type="text" id="main-web-link" readonly value="https://akkhilcodinghub.github.io/intern/" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-700 select-all">
-                        <button onclick="copyMainUrl()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg shadow-sm transition whitespace-nowrap">
-                            Copy
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Option 2: Compact Snapshot Link (WhatsApp & Teams safe) -->
-                <div class="bg-indigo-50/60 border border-indigo-200/80 rounded-xl p-3.5 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-                            <i class="fa-solid fa-bolt text-indigo-600"></i> Compact Live Snapshot Link
-                        </span>
-                        <span class="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-semibold">Teams & WhatsApp Friendly</span>
-                    </div>
-                    <p class="text-[11px] text-slate-600 leading-tight">
-                        Optimized compressed link containing your current tasks and numbers:
-                    </p>
-                    <div class="flex items-center gap-2">
-                        <input type="text" id="share-link-input" readonly class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-700 select-all">
-                        <button onclick="copyShareUrl()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition whitespace-nowrap">
-                            Copy
-                        </button>
-                    </div>
-                </div>
-
-                <div class="pt-1 flex items-center justify-end">
-                    <button type="button" onclick="closeShareModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Image Lightbox Modal Viewer -->
     <div id="lightbox-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center hidden p-4 animate-in fade-in duration-200">
         <!-- Top Toolbar -->
@@ -548,27 +471,11 @@
     </div>
 
     <script>
-        // Sample visual SVG placeholder for initial bug screenshot demonstration
-        const error400Svg = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="600" height="340" viewBox="0 0 600 340">
-                <rect width="600" height="340" fill="#0f172a" rx="10"/>
-                <rect x="0" y="0" width="600" height="38" fill="#1e293b" rx="10"/>
-                <circle cx="20" cy="19" r="6" fill="#ef4444"/>
-                <circle cx="38" cy="19" r="6" fill="#f59e0b"/>
-                <circle cx="56" cy="19" r="6" fill="#10b981"/>
-                <text x="80" y="24" fill="#94a3b8" font-family="monospace" font-size="12">POST /customer-service/api/Payment/ReservationPayment</text>
-                <rect x="25" y="60" width="550" height="85" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="1.5" rx="6"/>
-                <text x="45" y="90" fill="#fca5a5" font-family="sans-serif" font-size="15" font-weight="bold">HTTP 400 Bad Request</text>
-                <text x="45" y="115" fill="#e2e8f0" font-family="monospace" font-size="12">{ "error": "RateLimitExceeded", "retryAfterSeconds": 38 }</text>
-                <rect x="25" y="165" width="550" height="145" fill="#1e293b" rx="6"/>
-                <text x="45" y="195" fill="#38bdf8" font-family="monospace" font-size="12">// Steps to reproduce:</text>
-                <text x="45" y="220" fill="#cbd5e1" font-family="monospace" font-size="12">1. Create reservation &gt; Scroll to Payment section</text>
-                <text x="45" y="245" fill="#cbd5e1" font-family="monospace" font-size="12">2. Click Collect Payment (Cash/Card)</text>
-                <text x="45" y="270" fill="#cbd5e1" font-family="monospace" font-size="12">3. Trigger consecutive requests within &lt; 38s window</text>
-            </svg>
-        `);
+        // Cloud Database Endpoint (Auto-syncs live data for all visitors across devices)
+        const CLOUD_DB_URL = "https://kvdb.io/WFahZVH1DKoHkJBNbv3WUa/tracker";
+        const STORAGE_KEY = 'intern_progress_tracker_data_v3';
 
-        // Default initial data with realistic dates
+        // Default initial fallback data
         const initialData = [
             {
                 id: 1,
@@ -580,9 +487,7 @@
                 status: "In Progress",
                 progress: 50,
                 notes: "Rate limit issue: occurs when system receives multiple requests under 38 seconds.",
-                images: [
-                    { name: "Payment_400_Error.png", dataUrl: error400Svg }
-                ]
+                images: []
             },
             {
                 id: 2,
@@ -658,9 +563,7 @@
             }
         ];
 
-        const STORAGE_KEY = 'intern_progress_tracker_data_v3';
-        let trackerData = [];
-        let isViewingSharedData = false;
+        let trackerData = loadLocalFallback();
 
         function getTodayString() {
             const d = new Date();
@@ -679,93 +582,87 @@
             return `${year}-${month}-${day}`;
         }
 
-        function initData() {
-            // Check for shared URL hash data first: #s=... or #share=...
-            const hash = window.location.hash || '';
-            const sharePrefix = hash.includes('#s=') ? '#s=' : (hash.includes('#share=') ? '#share=' : null);
-            
-            if (sharePrefix) {
-                try {
-                    const compressed = hash.replace(sharePrefix, '');
-                    const jsonStr = (typeof LZString !== 'undefined')
-                        ? LZString.decompressFromEncodedURIComponent(compressed)
-                        : decodeURIComponent(escape(atob(compressed)));
-                    
-                    if (jsonStr) {
-                        const parsed = JSON.parse(jsonStr);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            // Expand minified compact keys if needed: [id, date, cat, title, details, priority, status, progress, notes]
-                            trackerData = parsed.map(p => {
-                                if (Array.isArray(p)) {
-                                    return {
-                                        id: p[0],
-                                        date: p[1],
-                                        category: p[2] === 1 ? 'Work Given Progress' : '.NET & ASP Learning',
-                                        title: p[3],
-                                        details: p[4] || '',
-                                        priority: p[5] || 'Standard',
-                                        status: p[6],
-                                        progress: p[7] || 0,
-                                        notes: p[8] || '',
-                                        images: []
-                                    };
-                                }
-                                return p;
-                            });
-                            isViewingSharedData = true;
-                            document.getElementById('shared-banner').classList.remove('hidden');
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Could not parse shared link data", e);
-                }
-            }
-
-            // Otherwise load from localStorage
-            trackerData = loadData();
-        }
-
-        function loadData() {
+        function loadLocalFallback() {
             try {
-                let stored = localStorage.getItem(STORAGE_KEY);
-                if (!stored) {
-                    stored = localStorage.getItem('intern_progress_tracker_data_v2');
-                }
+                const stored = localStorage.getItem(STORAGE_KEY);
                 if (stored) {
-                    const parsed = JSON.parse(stored);
-                    return parsed.map(item => ({
-                        ...item,
-                        date: item.date || getTodayString()
-                    }));
+                    return JSON.parse(stored);
                 }
-            } catch (e) {
-                console.error("Could not load from localStorage", e);
-            }
+            } catch (e) {}
             return initialData;
         }
 
-        function saveData() {
+        // Fetch live cloud data on load
+        async function syncFromCloud() {
+            try {
+                const res = await fetch(CLOUD_DB_URL, { cache: "no-store" });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        trackerData = data;
+                        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+                        renderTable();
+                        updateStats();
+                        updateCharts();
+                        setSyncBadge(true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Cloud sync unavailable, using local cache:", err);
+            }
+            setSyncBadge(false);
+        }
+
+        // Save data to both local storage and cloud database
+        async function persistData() {
+            // 1. Local backup
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(trackerData));
-            } catch (e) {
-                console.warn("Storage quota exceeded or error writing localStorage", e);
+            } catch (e) {}
+
+            // 2. Cloud DB update
+            try {
+                setSyncBadge(null); // syncing state
+                await fetch(CLOUD_DB_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trackerData)
+                });
+                setSyncBadge(true);
+            } catch (err) {
+                console.error("Cloud push failed:", err);
+                setSyncBadge(false);
             }
         }
 
-        function saveSharedDataToLocal() {
-            saveData();
-            showToast('Shared report saved to your local browser!');
-            setTimeout(() => {
-                window.location.hash = '';
-                document.getElementById('shared-banner').classList.add('hidden');
-            }, 1000);
+        function setSyncBadge(isSynced) {
+            const badge = document.getElementById('sync-status');
+            if (isSynced === true) {
+                badge.className = "bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-cloud text-[10px]"></i> Live Synced`;
+            } else if (isSynced === false) {
+                badge.className = "bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-slate-300 flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-hard-drive text-[10px]"></i> Local Cache`;
+            } else {
+                badge.className = "bg-amber-100 text-amber-800 text-xs font-semibold px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-arrows-rotate fa-spin text-[10px]"></i> Syncing...`;
+            }
+        }
+
+        function copyShareableLink() {
+            const link = "https://akkhilcodinghub.github.io/intern/";
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Short share link copied to clipboard! (Works in Teams & WhatsApp)', 'fa-share-nodes');
+            }).catch(() => {
+                prompt("Copy this short link for Teams & WhatsApp:", link);
+            });
         }
 
         function confirmResetData() {
-            if (confirm("Reset all entries, dates, and images back to default demo state?")) {
+            if (confirm("Reset all entries and dates back to default state?")) {
                 trackerData = JSON.parse(JSON.stringify(initialData));
-                saveData();
+                persistData();
                 renderTable();
                 updateStats();
                 updateCharts();
@@ -786,12 +683,12 @@
 
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
-            initData();
             renderTable();
             updateStats();
             initCharts();
             setupDropzone();
             setupPasteHandler();
+            syncFromCloud(); // Pull live cloud database
         });
 
         function renderTable() {
@@ -949,7 +846,7 @@
                 if (newStatus === 'Completed') item.progress = 100;
                 else if (newStatus === 'Not Started') item.progress = 0;
                 else if (newStatus === 'In Progress' && item.progress === 0) item.progress = 50;
-                saveData();
+                persistData();
                 renderTable();
                 updateStats();
                 updateCharts();
@@ -965,7 +862,7 @@
                 if (val === 100) item.status = 'Completed';
                 else if (val === 0) item.status = 'Not Started';
                 else if (val > 0 && val < 100) item.status = 'In Progress';
-                saveData();
+                persistData();
                 renderTable();
                 updateStats();
                 updateCharts();
@@ -978,7 +875,7 @@
             const title = item ? `"${item.title}"` : "this entry";
             if (confirm(`Are you sure you want to permanently delete ${title}?`)) {
                 trackerData = trackerData.filter(i => i.id !== id);
-                saveData();
+                persistData();
                 renderTable();
                 updateStats();
                 updateCharts();
@@ -992,57 +889,6 @@
                 closeModal();
                 deleteRow(editId);
             }
-        }
-
-        // Sharing System - Super compact array serialization
-        function openShareModal() {
-            try {
-                // Compress into minimal array [id, date, catCode (1: Work, 2: Learn), title, details, priority, status, progress, notes]
-                const compactArray = trackerData.map(i => [
-                    i.id,
-                    i.date || getTodayString(),
-                    i.category === 'Work Given Progress' ? 1 : 2,
-                    i.title || '',
-                    i.details || '',
-                    i.priority || '',
-                    i.status || 'Not Started',
-                    i.progress || 0,
-                    i.notes || ''
-                ]);
-
-                const jsonStr = JSON.stringify(compactArray);
-                const compressed = (typeof LZString !== 'undefined')
-                    ? LZString.compressToEncodedURIComponent(jsonStr)
-                    : encodeURIComponent(btoa(unescape(encodeURIComponent(jsonStr))));
-
-                const baseUrl = window.location.origin + window.location.pathname;
-                const fullShareUrl = `${baseUrl}#s=${compressed}`;
-
-                document.getElementById('share-link-input').value = fullShareUrl;
-                document.getElementById('main-web-link').value = baseUrl.startsWith('http') ? baseUrl : 'https://akkhilcodinghub.github.io/intern/';
-                document.getElementById('share-modal').classList.remove('hidden');
-            } catch (e) {
-                console.error("Could not generate share URL", e);
-                showToast('Error generating share link', 'fa-circle-exclamation');
-            }
-        }
-
-        function closeShareModal() {
-            document.getElementById('share-modal').classList.add('hidden');
-        }
-
-        function copyShareUrl() {
-            const input = document.getElementById('share-link-input');
-            input.select();
-            document.execCommand('copy');
-            showToast('Compact share link copied!', 'fa-clipboard-check');
-        }
-
-        function copyMainUrl() {
-            const input = document.getElementById('main-web-link');
-            input.select();
-            document.execCommand('copy');
-            showToast('Main website link copied!', 'fa-clipboard-check');
         }
 
         // Backup Export / Import JSON
@@ -1068,11 +914,11 @@
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported)) {
                         trackerData = imported;
-                        saveData();
+                        persistData();
                         renderTable();
                         updateStats();
                         updateCharts();
-                        showToast('Backup data imported successfully!');
+                        showToast('Backup data imported & synced to cloud!');
                     } else {
                         alert('Invalid JSON file format.');
                     }
@@ -1391,7 +1237,7 @@
                 const index = trackerData.findIndex(i => i.id == editId);
                 if (index !== -1) {
                     trackerData[index] = { ...trackerData[index], ...itemData };
-                    showToast('Entry updated successfully!');
+                    showToast('Entry updated & synced to cloud!');
                 }
             } else {
                 const newItem = {
@@ -1399,10 +1245,10 @@
                     ...itemData
                 };
                 trackerData.push(newItem);
-                showToast('New entry created!');
+                showToast('New entry created & synced to cloud!');
             }
 
-            saveData();
+            persistData();
             renderTable();
             updateStats();
             updateCharts();
@@ -1461,7 +1307,6 @@
             if (e.key === 'Escape') {
                 closeLightbox();
                 closeModal();
-                closeShareModal();
             } else if (e.key === 'ArrowLeft' && !document.getElementById('lightbox-modal').classList.contains('hidden')) {
                 navigateLightbox(-1);
             } else if (e.key === 'ArrowRight' && !document.getElementById('lightbox-modal').classList.contains('hidden')) {
